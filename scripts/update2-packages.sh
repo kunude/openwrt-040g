@@ -68,6 +68,24 @@ echo "Done removing sing-box from feeds"
 # 只集成 PassWall2（代理软件）
 UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
 
+# ========== 新增：修复 PassWall2 的 ShadowsocksR 组件默认禁用 ==========
+# 原因：OpenWrt 25.12 下 shadowsocksr-libev 的上游归档内容已变化，旧 MIRROR_HASH 失效。
+# 通过修改 Makefile 默认选项，避免在未手动选择 SSR 时因下载失败中断编译。
+if [ -f "./luci-app-passwall2/Makefile" ]; then
+	echo " "
+	echo "=========================================="
+	echo "Patching PassWall2 Makefile to disable broken ShadowsocksR components..."
+	echo "=========================================="
+	# 禁用 ShadowsocksR-Libev 客户端（默认 y -> n）
+	sed -i '/config PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Libev_Client/,/default y/s/default y/default n/' "./luci-app-passwall2/Makefile"
+	# 禁用 ShadowsocksR-Libev 服务端（虽然默认已是 n，但显式再设置为 n 确保安全）
+	sed -i '/config PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Libev_Server/,/default n/s/default n/default n/' "./luci-app-passwall2/Makefile"
+	echo "PassWall2 Makefile patched successfully."
+else
+	echo "WARNING: luci-app-passwall2/Makefile not found, cannot patch SSR components."
+fi
+# ========== 修复结束 ==========
+
 # PassWall2 依赖包（从 openwrt-passwall-packages 中获取）
 echo " "
 echo "=========================================="
