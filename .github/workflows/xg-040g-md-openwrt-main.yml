@@ -131,6 +131,14 @@ jobs:
           chmod +x $GITHUB_WORKSPACE/scripts/update2-packages.sh
           bash $GITHUB_WORKSPACE/scripts/update2-packages.sh
           
+         # ========== 新增：应用你自己的补丁（包含 luci-app-airoha-npu）==========
+      - name: Apply Airoha patches (copy luci-app-airoha-npu)
+        run: |
+          cd patch-master
+          chmod +x patch.sh
+          ./patch.sh
+          cd ..
+          
       - name: Copy configuration and defconfig
         run: |
           cp -fv "${CONFIG_FILE}" openwrt/.config
@@ -153,29 +161,6 @@ jobs:
           # Remove small incomplete files <1KB
           find dl -size -1024c -delete
           
-      - name: Force enable missing packages (airoha-npu, glass theme, kmods)
-        working-directory: ./openwrt
-        run: |
-          # 启用配置选项（避免重复）
-          for option in \
-           CONFIG_PACKAGE_luci-app-airoha-npu \
-           CONFIG_PACKAGE_luci-theme-glass \
-           CONFIG_PACKAGE_kmod-airoha \
-           CONFIG_PACKAGE_kmod-mt76-core \
-           CONFIG_BUSYBOX_CONFIG_DEVMEM
-          do
-           if ! grep -q "^$option=y" .config; then
-            # 移除可能存在的禁用行
-           sed -i "/^# $option is not set/d" .config
-           sed -i "/^$option=/d" .config
-           echo "$option=y" >> .config
-           fi
-          done
-          # 运行 oldconfig 让依赖自动解决（非交互）
-          make oldconfig
-          # 保存修复后的配置（可选）
-          cp .config defconfig-final-after-fix.config
-
       - name: Compile OpenWrt firmware
         id: compile
         run: |
