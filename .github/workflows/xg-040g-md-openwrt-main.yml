@@ -146,25 +146,25 @@ jobs:
             config/xg-040g-md.config
             openwrt/defconfig-final.config
             openwrt/feeds.conf.default
-            
+
       - name: Integrate luci-app-airoha-npu (optional)
         if: env.INCLUDE_AIRONPU == 'true'
         working-directory: ./openwrt
         run: |
           # 1. 克隆源码
           git clone --depth=1 https://github.com/rchen14b/luci-app-airoha-npu.git package/luci-app-airoha-npu
-          # 2. 强制在 .config 中启用（避免 defconfig 重置）
+          # 2. 强制启用（避免 defconfig 重置）
           sed -i '/CONFIG_PACKAGE_luci-app-airoha-npu/d' .config
           echo "CONFIG_PACKAGE_luci-app-airoha-npu=y" >> .config
-          # 3. 确保依赖（可选，一般会自动解决）
           sed -i '/CONFIG_PACKAGE_luci-compat/d' .config
           echo "CONFIG_PACKAGE_luci-compat=y" >> .config
+          # 3. 刷新配置，确保依赖正确
+          make oldconfig
 
       - name: Download packages
         working-directory: ./openwrt
         run: |
           make download -j4 V=s
-          # Remove small incomplete files <1KB
           find dl -size -1024c -delete
           
       - name: Compile OpenWrt firmware
