@@ -69,11 +69,11 @@ echo "Done removing sing-box from feeds"
 UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
 
 # ========== 新增：集成 Airoha NPU 监控界面 ==========
-UPDATE_PACKAGE "luci-app-airoha-npu" "rchen14b/luci-app-airoha-npu" "main"
+# UPDATE_PACKAGE "luci-app-airoha-npu" "rchen14b/luci-app-airoha-npu" "main"
 # ========== 新增结束 ==========
 
 # ========== 新增：集成 Glass 主题 ==========
-UPDATE_PACKAGE "luci-theme-glass" "rchen14b/luci-theme-glass" "main"
+# UPDATE_PACKAGE "luci-theme-glass" "rchen14b/luci-theme-glass" "main"
 # ========== 新增结束 ==========
 
 # ========== 新增：修复 PassWall2 的 ShadowsocksR 组件默认禁用 ==========
