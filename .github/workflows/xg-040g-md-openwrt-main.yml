@@ -33,7 +33,8 @@ env:
   CCACHE_DIR: /mnt/openwrt/ccache
   CCACHE_MAXSIZE: 5G
   TZ: Asia/Shanghai
-
+  INCLUDE_AIRONPU: 'true'   # 你可以改为 'false' 来关闭集成
+  
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -129,15 +130,7 @@ jobs:
         working-directory: ./openwrt/package
         run: |
           chmod +x $GITHUB_WORKSPACE/scripts/update2-packages.sh
-          bash $GITHUB_WORKSPACE/scripts/update2-packages.sh
-          
-         # ========== 新增：应用你自己的补丁（包含 luci-app-airoha-npu）==========
-      - name: Apply Airoha patches (copy luci-app-airoha-npu)
-        run: |
-          cd patch-master
-          chmod +x patch.sh
-          ./patch.sh
-          cd ..
+          bash $GITHUB_WORKSPACE/scripts/update2-packages.sh      
           
       - name: Copy configuration and defconfig
         run: |
@@ -153,6 +146,19 @@ jobs:
             config/xg-040g-md.config
             openwrt/defconfig-final.config
             openwrt/feeds.conf.default
+            
+      - name: Integrate luci-app-airoha-npu (optional)
+        if: env.INCLUDE_AIRONPU == 'true'
+        working-directory: ./openwrt
+        run: |
+          # 1. 克隆源码
+          git clone --depth=1 https://github.com/rchen14b/luci-app-airoha-npu.git package/luci-app-airoha-npu
+          # 2. 强制在 .config 中启用（避免 defconfig 重置）
+          sed -i '/CONFIG_PACKAGE_luci-app-airoha-npu/d' .config
+          echo "CONFIG_PACKAGE_luci-app-airoha-npu=y" >> .config
+          # 3. 确保依赖（可选，一般会自动解决）
+          sed -i '/CONFIG_PACKAGE_luci-compat/d' .config
+          echo "CONFIG_PACKAGE_luci-compat=y" >> .config
 
       - name: Download packages
         working-directory: ./openwrt
