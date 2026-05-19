@@ -14,4 +14,4 @@ mkdir -p "$PROJECT_ROOT/package"
 cp -a "$SCRIPT_DIR/package/luci-app-airoha-npu/" "$PROJECT_ROOT/package/luci-app-airoha-npu/"
 
 echo "========================================"
-echo "✅ 补丁部署完成！请重新编译源码。
+echo "✅ 补丁部署完成！请重新编译源码。"
