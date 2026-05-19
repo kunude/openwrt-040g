@@ -151,6 +151,31 @@ jobs:
             config/xg-040g-md.config
             openwrt/defconfig-final.config
             openwrt/feeds.conf.default
+            
+      - name: Fix platform.sh for XG-040G-MD (enable sysupgrade)
+        working-directory: ./openwrt
+        run: |
+          mkdir -p target/linux/airoha/an7581/base-files/lib/upgrade
+          cat > target/linux/airoha/an7581/base-files/lib/upgrade/platform.sh << "EOF"
+          REQUIRE_IMAGE_METADATA=1
+          RAMFS_COPY_BIN='fitblk fit_check_sign'
+
+          platform_do_upgrade() {
+              local board=$(board_name)
+              case "$board" in
+                  gemtek,w1700k-ubi)
+                      fit_do_upgrade "$1"
+                      ;;
+                  *)
+                      nand_do_upgrade "$1"
+                      ;;
+              esac
+          }
+
+          platform_check_image() {
+              return 0
+          }
+          EOF
 
       - name: Download packages
         working-directory: ./openwrt
@@ -158,19 +183,6 @@ jobs:
           make download -j4 V=s
           # Remove small incomplete files <1KB
           find dl -size -1024c -delete
-          
-      - name: Force enable missing packages (airoha-npu, glass theme, kmods)
-        working-directory: ./openwrt
-        run: |
-          ./scripts/config --enable CONFIG_PACKAGE_luci-app-airoha-npu
-          ./scripts/config --enable CONFIG_PACKAGE_luci-theme-glass
-          ./scripts/config --enable CONFIG_PACKAGE_kmod-airoha
-          ./scripts/config --enable CONFIG_PACKAGE_kmod-mt76-core
-          ./scripts/config --enable CONFIG_BUSYBOX_DEFAULT_DEVMEM
-          # 可选：让配置依赖自动解决（不会清除已启用的选项）
-          make oldconfig
-          # 再次保存最终配置（用于上传的 artifact）
-          cp .config defconfig-final-after-fix.config
 
       - name: Compile OpenWrt firmware
         id: compile
