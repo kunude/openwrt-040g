@@ -152,6 +152,19 @@ jobs:
           make download -j4 V=s
           # Remove small incomplete files <1KB
           find dl -size -1024c -delete
+          
+      - name: Force enable missing packages (airoha-npu, glass theme, kmods)
+        working-directory: ./openwrt
+        run: |
+          ./scripts/config --enable CONFIG_PACKAGE_luci-app-airoha-npu
+          ./scripts/config --enable CONFIG_PACKAGE_luci-theme-glass
+          ./scripts/config --enable CONFIG_PACKAGE_kmod-airoha
+          ./scripts/config --enable CONFIG_PACKAGE_kmod-mt76-core
+          ./scripts/config --enable CONFIG_BUSYBOX_DEFAULT_DEVMEM
+          # 可选：让配置依赖自动解决（不会清除已启用的选项）
+          make oldconfig
+          # 再次保存最终配置（用于上传的 artifact）
+          cp .config defconfig-final-after-fix.config
 
       - name: Compile OpenWrt firmware
         id: compile
