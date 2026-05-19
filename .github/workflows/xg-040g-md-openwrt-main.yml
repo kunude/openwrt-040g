@@ -156,14 +156,24 @@ jobs:
       - name: Force enable missing packages (airoha-npu, glass theme, kmods)
         working-directory: ./openwrt
         run: |
-          ./scripts/config --enable CONFIG_PACKAGE_luci-app-airoha-npu
-          ./scripts/config --enable CONFIG_PACKAGE_luci-theme-glass
-          ./scripts/config --enable CONFIG_PACKAGE_kmod-airoha
-          ./scripts/config --enable CONFIG_PACKAGE_kmod-mt76-core
-          ./scripts/config --enable CONFIG_BUSYBOX_DEFAULT_DEVMEM
-          # 可选：让配置依赖自动解决（不会清除已启用的选项）
+          # 启用配置选项（避免重复）
+          for option in \
+           CONFIG_PACKAGE_luci-app-airoha-npu \
+           CONFIG_PACKAGE_luci-theme-glass \
+           CONFIG_PACKAGE_kmod-airoha \
+           CONFIG_PACKAGE_kmod-mt76-core \
+           CONFIG_BUSYBOX_CONFIG_DEVMEM
+          do
+           if ! grep -q "^$option=y" .config; then
+            # 移除可能存在的禁用行
+           sed -i "/^# $option is not set/d" .config
+           sed -i "/^$option=/d" .config
+           echo "$option=y" >> .config
+           fi
+          done
+          # 运行 oldconfig 让依赖自动解决（非交互）
           make oldconfig
-          # 再次保存最终配置（用于上传的 artifact）
+          # 保存修复后的配置（可选）
           cp .config defconfig-final-after-fix.config
 
       - name: Compile OpenWrt firmware
