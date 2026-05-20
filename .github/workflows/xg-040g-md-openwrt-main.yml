@@ -23,7 +23,7 @@ on:
 
 env:
   CONFIG_FILE: "config/xg-040g-md.config"
-  REPO_URL: https://github.com/xiangtailiang/openwrt.git
+  REPO_URL: https://github.com/kunude/openwrt.git
   REPO_BRANCH: main
   FEEDS_CONF: feeds.conf.default
   UPLOAD_FIRMWARE: true
@@ -33,7 +33,7 @@ env:
   CCACHE_DIR: /mnt/openwrt/ccache
   CCACHE_MAXSIZE: 5G
   TZ: Asia/Shanghai
-  INCLUDE_AIRONPU: 'true'   # 你可以改为 'false' 来关闭集成
+  #  INCLUDE_AIRONPU: 'true'   你可以改为 'false' 来关闭集成
   
 jobs:
   build:
@@ -132,11 +132,12 @@ jobs:
           chmod +x $GITHUB_WORKSPACE/scripts/update2-packages.sh
           bash $GITHUB_WORKSPACE/scripts/update2-packages.sh
 
-      - name: Integrate luci-app-airoha-npu (clone before defconfig)
-        if: env.INCLUDE_AIRONPU == 'true'
-        working-directory: ./openwrt
-        run: |
-          git clone --depth=1 https://github.com/rchen14b/luci-app-airoha-npu.git package/luci-app-airoha-npu
+      # 删除或注释掉这一步（因为包已经在你的仓库里）
+      # - name: Integrate luci-app-airoha-npu (clone before defconfig)
+      #   if: env.INCLUDE_AIRONPU == 'true'
+      #   working-directory: ./openwrt
+      #   run: |
+      #     git clone --depth=1 https://github.com/rchen14b/luci-app-airoha-npu.git package/luci-app-airoha-npu
 
       - name: Copy configuration and defconfig
         run: |
