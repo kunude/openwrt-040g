@@ -126,12 +126,18 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a -f
 
-      - name: Install third-party packages ( passwall2)
+      - name: Install third-party packages (passwall2)
         working-directory: ./openwrt/package
         run: |
           chmod +x $GITHUB_WORKSPACE/scripts/update2-packages.sh
-          bash $GITHUB_WORKSPACE/scripts/update2-packages.sh      
-          
+          bash $GITHUB_WORKSPACE/scripts/update2-packages.sh
+
+      - name: Integrate luci-app-airoha-npu (clone before defconfig)
+        if: env.INCLUDE_AIRONPU == 'true'
+        working-directory: ./openwrt
+        run: |
+          git clone --depth=1 https://github.com/rchen14b/luci-app-airoha-npu.git package/luci-app-airoha-npu
+
       - name: Copy configuration and defconfig
         run: |
           cp -fv "${CONFIG_FILE}" openwrt/.config
@@ -146,21 +152,7 @@ jobs:
             config/xg-040g-md.config
             openwrt/defconfig-final.config
             openwrt/feeds.conf.default
-
-      - name: Integrate luci-app-airoha-npu (optional)
-        if: env.INCLUDE_AIRONPU == 'true'
-        working-directory: ./openwrt
-        run: |
-          # 1. 克隆源码
-          git clone --depth=1 https://github.com/rchen14b/luci-app-airoha-npu.git package/luci-app-airoha-npu
-          # 2. 强制启用（避免 defconfig 重置）
-          sed -i '/CONFIG_PACKAGE_luci-app-airoha-npu/d' .config
-          echo "CONFIG_PACKAGE_luci-app-airoha-npu=y" >> .config
-          sed -i '/CONFIG_PACKAGE_luci-compat/d' .config
-          echo "CONFIG_PACKAGE_luci-compat=y" >> .config
-          # 3. 刷新配置，确保依赖正确
-          make oldconfig
-
+            
       - name: Download packages
         working-directory: ./openwrt
         run: |
